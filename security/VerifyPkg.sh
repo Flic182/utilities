@@ -34,9 +34,9 @@ readonly LOG_DATE_FORMAT='+%Y-%m-%d %H:%M:%S'
 
 
 ################################################################################
-# Include argument & error handling functionality.
+# Include error handling functionality.
 ################################################################################
-. "${WORKING_DIR}/../handlers/ArgumentHandling.sh"
+. "${WORKING_DIR}/../handlers/ErrorHandling.sh"
 
 
 ################################################################################
