@@ -35,14 +35,17 @@ readonly ALLOWED_FLAGS="^-[apt]$"
 readonly WORKING_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 readonly SCRIPT_NAME="$("basename" "${BASH_SOURCE[0]}")"
 
-# Include error handling functionality.
-. "${WORKING_DIR}/ErrorHandling.sh"
-
 readonly AWS_DIR="${HOME}/.aws"
 readonly AWS_CREDENTIALS="${AWS_DIR}/credentials"
 readonly AWS_HISTORY="${AWS_DIR}/history"
 
 readonly TOKEN_EXPIRY_REGEX="^x_security_token_expires..*"
+
+
+################################################################################
+# Include error handling functionality.
+################################################################################
+. "${WORKING_DIR}/../handlers/ErrorHandling.sh"
 
 
 ################################################################################
@@ -58,7 +61,6 @@ readonly REFRESH_BUFFER=300
 ################################################################################
 readonly NO_SESSION_ERROR=96
 readonly UNHANDLED_OS_ERROR=97
-readonly BAD_ARGUMENT_ERROR=98 # TODO - Maybe move to ErrorHandling.sh?
 
 
 ################################################################################
@@ -344,7 +346,7 @@ start_session() {
 
   if [[ "${?}" != "${SUCCESS}" ]]; then
     exit_with_error "${NO_SESSION_ERROR}" \
-                    "Could not connect with profile ${profile},account ${account} & timeout ${timeout}."
+                    "Could not connect with profile ${profile}, account ${account} & timeout ${timeout}."
   fi
 }
 

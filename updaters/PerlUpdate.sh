@@ -14,12 +14,15 @@
 # File and command info
 ################################################################################
 readonly USAGE="${0} [-c(leanup old versions)]"
-readonly ALLOWED_FLAGS="^-[c]$"
-readonly PERLBREW_EXE="${HOME}/perl5/perlbrew/bin/perlbrew"
 readonly WORKING_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 
+readonly PERLBREW_EXE="${HOME}/perl5/perlbrew/bin/perlbrew"
+
+
+################################################################################
 # Include command-line & error handling functionality.
-. "${WORKING_DIR}/ArgumentHandling.sh"
+################################################################################
+. "${WORKING_DIR}/../handlers/UpdaterArgumentHandling.sh"
 
 
 ################################################################################
@@ -52,32 +55,34 @@ clean_installations() {
   if (( clean_installs == TRUE )); then
     "${PERLBREW_EXE}" clean
 
-    if [[ "${IN_USE}" == "${OLD_VERSION}" ]]; then
+    if [[ "${IN_USE}" == "${NEW_VERSION}" ]]; then
+      "${PERLBREW_EXE}" list | awk '/^[ ][ ]*perl-..*$/ {print $(NF);}' | \
+      while read -r outdated_version; do
+        uninstall_version "${outdated_version}"
+      done
+    elif [[ "${IN_USE}" == "${OLD_VERSION}" ]]; then
       "${PERLBREW_EXE}" switch "${NEW_VERSION}"
-      if [[ "${?}" != "${SUCCESS}" ]]; then
+      if [[ "${?}" -ne "${SUCCESS}" ]]; then
         exit_with_error "${SWITCH_ERROR}" \
                         "Switch from ${OLD_VERSION} to ${NEW_VERSION} failed."
       fi
 
-      uninstall_version "${OLD_VERSION}"
-      if [[ "${?}" != "${SUCCESS}" ]]; then
-        exit_with_error "${UNINSTALL_ERROR}" \
-                        "Uninstall of version ${OLD_VERSION} failed."
-      fi
-    elif [[ "${IN_USE}" == "${NEW_VERSION}" ]]; then
-      local old_versions=("$("${PERLBREW_EXE}" "list" | \
-                             "awk" '/^[ ][ ]*perl-..*$/ {print $(NF);}')")
+      echo "Now running Perl version ${NEW_VERSION} globally."
 
-      for outdated_version in "${old_versions[@]}"; do
-        uninstall_version "${old_version[${version_index}]}"
-      done
+      uninstall_version "${OLD_VERSION}"
+    else
+      echo "Current Perl version unchanged.  Running ${IN_USE}."
     fi
   elif [[ "${IN_USE}" == "${OLD_VERSION}" ]]; then
     "${PERLBREW_EXE}" switch "${NEW_VERSION}"
-    if [[ "${?}" != "${SUCCESS}" ]]; then
+    if [[ "${?}" -ne "${SUCCESS}" ]]; then
       exit_with_error "${SWITCH_ERROR}" \
                       "Switch from ${OLD_VERSION} to ${NEW_VERSION} failed."
     fi
+
+    echo "Now running Perl version ${NEW_VERSION} globally."
+  else
+    echo "Current Perl version unchanged.  Running ${IN_USE}."
   fi
 }
 
@@ -95,7 +100,7 @@ clone_modules() {
 
   "${PERLBREW_EXE}" clone-modules "${OLD_VERSION}" "${NEW_VERSION}"
 
-  if [[ "${?}" != "${SUCCESS}" ]]; then
+  if [[ "${?}" -ne "${SUCCESS}" ]]; then
     exit_with_error "${CLONE_ERROR}" \
                     "Module clone from ${OLD_VERSION} to ${NEW_VERSION} failed."
   fi
@@ -123,7 +128,7 @@ install_version() {
 
   "${PERLBREW_EXE}" install "${PERL_VERSION}"
 
-  if [[ "${?}" != "${SUCCESS}" ]]; then
+  if [[ "${?}" -ne "${SUCCESS}" ]]; then
     exit_with_error "${INSTALL_ERROR}" "Failed to install ${PERL_VERSION}."
   fi
 }
@@ -139,9 +144,11 @@ uninstall_version() {
 
   "${PERLBREW_EXE}" uninstall "${PERL_VERSION}"
 
-  if [[ "${?}" != "${SUCCESS}" ]]; then
+  if [[ "${?}" -ne "${SUCCESS}" ]]; then
     exit_with_error "${UNINSTALL_ERROR}" "Failed to uninstall ${PERL_VERSION}."
   fi
+
+  echo "Uninstalled old Perl version ${PERL_VERSION}."
 }
 
 
@@ -176,7 +183,7 @@ upgrade_perl() {
 upgrade_perlbrew() {
   "${PERLBREW_EXE}" self-upgrade
 
-  if [[ "${?}" != "${SUCCESS}" ]]; then
+  if [[ "${?}" -ne "${SUCCESS}" ]]; then
     exit_with_error "${PERLBREW_UPGRADE_ERROR}" "Perlbrew upgrade failed."
   fi
 }

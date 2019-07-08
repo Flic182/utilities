@@ -20,19 +20,29 @@
 
 
 ################################################################################
+# File and command info
+################################################################################
+readonly USAGE="USAGE:  $0 -a <checksum algorithm - e.g. sha256/sha512/md5> -h <expected hash> <target file>"
+readonly WORKING_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
+
+
+################################################################################
 # User feedback messages.
 ################################################################################
 readonly GOOD_SUM="Checksum OK."
 readonly LOG_DATE_FORMAT='+%Y-%m-%d %H:%M:%S'
-readonly USAGE="USAGE:  $0 -a <checksum algorithm - e.g. sha256/sha512/md5> -h <expected hash> <target file>"
+
+
+################################################################################
+# Include argument & error handling functionality.
+################################################################################
+. "${WORKING_DIR}/../handlers/ArgumentHandling.sh"
 
 
 ################################################################################
 # Exit states.
 ################################################################################
-readonly SUCCESS=0
-readonly BAD_ARGUMENT_ERROR=98
-readonly UNSUPPORTED_ALGORITHM=99
+readonly UNSUPPORTED_ALGORITHM=97
 
 
 ################################################################################
